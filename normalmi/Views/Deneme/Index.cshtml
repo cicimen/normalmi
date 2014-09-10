@@ -1,0 +1,55 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = null;
+}
+
+<h2>Index</h2>
+
+<div id="fb-root"></div>
+<script type="text/javascript">
+    //initializing API
+    window.fbAsyncInit = function () {
+        FB.init({ appId: '467450233371742', status: true, cookie: true, xfbml: true });
+    };
+    (function () {
+        var e = document.createElement('script'); e.async = true;
+        e.src = document.location.protocol +
+          '//connect.facebook.net/en_US/all.js';
+        document.getElementById('fb-root').appendChild(e);
+    }());
+</script>
+<script type="text/javascript">
+    function fblogin() {
+        FB.login(function (response) {
+            FB.api('/me', function (response) {
+                console.log(response);
+                console.log(response.id +","+ response.name + "," + response.email);
+                //console.log(FbResponse);
+                console.log(response.location);
+                //'Fonksiyon Adi '(response.id,response.name,response.email, FbResponse);
+                // Kullanıcının genel bilgileri facebookid,isim ve mail bilgileri bu alanda almaktayız. Projemizin içerisine bir fonskiyon yazıp bu fonsiyonu 
+                //"Fonksiyon Adi" yazilmiş yere yapıştırır isek kullanıcı ekleme işleminide yapmış oluruz.Otomatik olarak duvarına erişme yetkileri istemekte. 
+                //Uygulama oluşturma bölümünden bu yetkileri arttırabilirsiniz.
+
+            },
+
+            FB.api("/me/picture?width=180&height=180",  function(response) {
+
+                console.log(response.data.url);
+
+            })  
+
+
+            );
+        }, { perms: 'email' });
+    }
+
+    function FbResponse(result) {
+        window.location.reload();
+    }
+</script>
+<label><a href="#" onclick="fblogin();return false;">Facebook Connect Please....!</a></label>
+
+<div>
+</div>
