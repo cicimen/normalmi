@@ -31,9 +31,13 @@ namespace Authentication
             public static UserAuthResult Authenticate(string organizationCode, string userName, string password)
             {
                 string Auth_GetUserByCredentials =
-                "SELECT Users.ID,Users.Name,Surname,IsAdmin,IsSuperAdmin,LoginType,Users.Password " +
-                "FROM User INNER JOIN Organizations ON Users.OrganizationID = Organizations.ID " +
-                "WHERE Organizations.Code = '{0}' AND Username = '{1}'";
+                @"SELECT u.ID,u.Name,u.Surname,u.Email,u.Password,u.About,u.BirthDate,u.DateCreated,u.LastLogin,u.DateUpdated,ul.LoginProvider 
+                FROM User AS u
+                INNER JOIN UserLogin AS ul 
+                ON u.ID = ul.UserID
+                WHERE  u.Email = '{1}'
+
+                WHERE  ul.Providerkey = '{1}'";
 
                 string connStr = ConfigurationManager.AppSettings["MasterSQLConnection"];
                 SqlDatabase db = new SqlDatabase(connStr);
