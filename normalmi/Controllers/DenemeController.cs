@@ -4,6 +4,8 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 
+using Authentication;
+
 namespace normalmi.Controllers
 {
     public class DenemeController : Controller
@@ -11,6 +13,16 @@ namespace normalmi.Controllers
         //
         // GET: /Deneme/
         public ActionResult Index()
+        {
+            return View();
+        }
+
+        public ActionResult Deneme()
+        {
+            return View();
+        }
+
+        public ActionResult SaveUser()
         {
             return View();
         }

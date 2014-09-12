@@ -12,11 +12,7 @@ namespace Authentication
 {
     public class User
     {
-        public class User
-        {
-            private int _id;
-
-            public int ID { get { return this._id; } }
+            public int ID { get; set; }
             public string Email { get; set; }
             public string Name { get; set; }
             public string Surname { get; set; }
@@ -28,7 +24,7 @@ namespace Authentication
             public string About { get; set; }
 
 
-            public static UserAuthResult Authenticate(string organizationCode, string userName, string password)
+            public static UserAuthResult Authenticate(string userName, string password, string providerKey)
             {
                 string Auth_GetUserByCredentials =
                 @"SELECT u.ID,u.Name,u.Surname,u.Email,u.Password,u.About,u.BirthDate,u.DateCreated,u.LastLogin,u.DateUpdated,ul.LoginProvider 
@@ -43,13 +39,11 @@ namespace Authentication
                 SqlDatabase db = new SqlDatabase(connStr);
                 UserAuthResult result = new UserAuthResult();
                 result.AuthSuccess = false;
-                // User user;
-                int userID = -1;
-                string activeDirectoryDomain = string.Empty;
+                User user = new User();
                 string dbPassword = string.Empty;
                 try
                 {
-                    string query = String.Format(Auth_GetUserByCredentials, organizationCode, userName);
+                    string query = String.Format(Auth_GetUserByCredentials, userName);
                     using (DbCommand command = db.GetSqlStringCommand(query))
                     {
 
@@ -58,8 +52,10 @@ namespace Authentication
                             if (reader.Read())
                             {
                                 //Users.ID,Users.Name,Surname,IsAdmin,IsSuperAdmin,LoginType,Users.ActiveDirectoryDomain,Password
-                                userID = int.Parse(reader["ID"].ToString());
-                                dbPassword = reader["Password"].ToString();
+                                user.ID       = int.Parse(reader["ID"].ToString());
+                                user.Password = reader["Password"].ToString();
+                                user.Name     = reader["Name"].ToString();
+                                user.Surname  = reader["Surname"].ToString();
                             }
                             else
                             {
@@ -74,9 +70,9 @@ namespace Authentication
                 }
 
 
-                if (!string.IsNullOrEmpty(password) && userID > 0 && password.Equals(dbPassword))
+                if (!string.IsNullOrEmpty(password) && user.ID > 0 && password.Equals(user.Password))
                 {
-                    result.User = new User(userID);
+                    result.User = user;
                     result.AuthSuccess = true;
                 }
                 else
@@ -91,7 +87,7 @@ namespace Authentication
 
             public static UserLoginResult Login(string organizationCode, string userName, string password)
             {
-                UserAuthResult authResult = Authenticate(organizationCode, userName, password);
+                UserAuthResult authResult = Authenticate(userName, password,"");
                 UserLoginResult loginResult = new UserLoginResult();
                 if (authResult.AuthSuccess == true)
                 {
@@ -105,47 +101,6 @@ namespace Authentication
 
                 }
                 return loginResult;
-            }
-
-            private User(int userID)
-            {
-
-                _id = userID;
-                string connStr = ConfigurationManager.AppSettings["MasterSQLConnection"];
-                SqlDatabase db = new SqlDatabase(connStr);
-
-                try
-                {
-                    string Q_GetUserByID = "SELECT Users.ID,Username,Users.Name,Surname,IsAdmin,IsSuperAdmin,LoginType,Users.ActiveDirectoryDomain,Users.Password,Users.LastLogin,Users.OrganizationID as OrganizationID," +
-                        "Organizations.Name as OrganizationName, Organizations.Target as IsTarget,Organizations.Segment as IsSegment,SitesToUsers.SiteID as ProfileID," +
-                        "SiteName,ConnectionString,Disabled,SegmentLabels,MiningJobDisabled,LastSegmentActionTime,LastTargetActionTime FROM Users " +
-                        "INNER JOIN Organizations ON Users.OrganizationID = Organizations.ID " +
-
-                        "LEFT JOIN SitesToUsers ON Users.ID = SitesToUsers.UserID " +
-                        "LEFT JOIN Sites ON Sites.SiteID = SitesToUsers.SiteID " +
-                        "WHERE Users.ID = {0}";
-
-                    using (DbCommand command = db.GetSqlStringCommand(String.Format(Q_GetUserByID, userID)))
-                    {
-                        using (IDataReader reader = db.ExecuteReader(command))
-                        {
-                            while (reader.Read())
-                            {
-                                Name = reader["Name"].ToString();
-                                Surname = reader["Surname"].ToString();
-                                Password = reader["Password"].ToString();
-                                LoginType = reader["LoginType"].ToString();
-                                LastLogin = reader.IsDBNull(reader.GetOrdinal("LastLogin")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("LastLogin"));                                
-                            }
-
-                        }
-                    }
-
-                }
-                finally
-                {
-
-                }
             }
 
             public bool Update()
@@ -190,7 +145,7 @@ namespace Authentication
 
             public static User GetUser(int userID)
             {
-                return new User(userID);
+                return new User();
             }
 
 
@@ -212,5 +167,5 @@ namespace Authentication
 
         }
 
-    }
+    
 }
